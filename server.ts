@@ -5,6 +5,7 @@ import { fileURLToPath } from "url";
 import axios from "axios";
 import dotenv from "dotenv";
 import { WebSocketServer, WebSocket } from "ws";
+import { z } from "zod";
 
 dotenv.config();
 
@@ -328,8 +329,20 @@ async function startServer() {
     try {
       const accessToken = req.headers.authorization?.split(" ")[1];
       if (!accessToken) return res.status(401).json({ error: "Unauthorized" });
-      
-      const { instructions } = req.body;
+
+      const schema = z.object({
+        instructions: z.string().min(1, "Instructions are required"),
+      });
+
+      const validation = schema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({
+          error: "Invalid request body",
+          details: validation.error.errors,
+        });
+      }
+
+      const { instructions } = validation.data;
       const { createServerAgent } = await import("./server_services/AgentOrchestrator.js");
       const agent = createServerAgent(accessToken);
       const result = await agent.run(instructions);
