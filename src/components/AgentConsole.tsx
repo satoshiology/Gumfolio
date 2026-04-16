@@ -13,10 +13,6 @@ export default function AgentConsole() {
     try {
       const response = await axios.post("/api/agent/run", {
         instructions: "You are a specialized Gumroad store manager agent."
-      }, {
-        headers: {
-            Authorization: `Bearer ${localStorage.getItem("gumroad_access_token")}`
-        }
       });
       setAgents(prev => [...prev, { name: `Agent-${prev.length + 1}`, result: response.data.result }]);
     } catch (e) {

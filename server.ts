@@ -1,4 +1,5 @@
 import express from "express";
+import cookieParser from "cookie-parser";
 import { createServer as createViteServer } from "vite";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -19,6 +20,7 @@ async function startServer() {
   const PORT = 3000;
 
   app.use(express.json());
+  app.use(cookieParser());
 
   const GUMROAD_API_BASE = "https://api.gumroad.com/v2";
 
@@ -61,20 +63,28 @@ async function startServer() {
 
       const { access_token } = response.data;
 
+      // Set HttpOnly cookie
+      res.cookie('gumroad_access_token', access_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+      });
+
       res.send(`
         <html>
           <body>
-            <script type='text/javascript' nonce='Zb1rCQAlF07XZOfC6v8E+A==' src='https://aistudio.google.com/SpaeBV7yCg0tUqkKv_Uxs0Q0ssOfT89XwFDsSm0q418vnZXjigyc7YshZ3HROatWRZ_7_I6W8WPSoeDGUg2qaOOEbaPsgEx90UUUtrAblH_hVkl6x8jeU2A6rQtw3gJ0X30kTgk5hArSmbK8JEQMM--Hacr-f7OMFi6fR6Uiq4cQtCpEaUMOYJmFKO4LVdWNEMPBW0J-gFxgnvKkom59OAreJGF-P-pDLT4gBuB4fp-7l7mVY4d4dj816e1kRDgtthX0YtyOPjbgLQBGh4GVzf50JrCMS5wQO4fAhFYdHSIns7YF_4tq2fVls0cTq4J7bs0M35ewNRujCMHRKh-SYvzDMby7GTMKB14X4E3Xm3bJN-UpDQRi06_CkMba0zkFXEGTa53Vue-DI-VUTni0dzCUVgheaJS04fyiLis0TBC4IQNTgNNqYHFdLlNVEecX1lZ_NdSISjcdqwo_N1ay_tp49_GdPG1O3j6QWJUYAEX3q3w0OwA2f-l7mfhl-CH8-UKGdMD1i_z71cbKS_YXjDfgqNMF_qluvxNnnV-_JhxSc1vzM61vI5AlLhTKxckzWvv-XiGOrFz_ZAhgasu2RoIV9EgXYQjLN6QhOa5qOZ8DtEl_Dw'></script><script>
-              // 1. Save token to localStorage so the main window can detect it
+            <script>
+              // 1. Save authenticated flag to localStorage so the main window can detect it
               try {
-                localStorage.setItem('gumroad_access_token', '${access_token}');
+                localStorage.setItem('gumroad_authenticated', 'true');
               } catch (e) {
                 console.error('localStorage error:', e);
               }
 
-              // 2. Try postMessage as a secondary method
+              // 2. Tell main window we are authenticated without passing the token
               if (window.opener) {
-                window.opener.postMessage({ type: 'OAUTH_AUTH_SUCCESS', token: '${access_token}' }, '*');
+                window.opener.postMessage({ type: 'OAUTH_AUTH_SUCCESS' }, '*');
               }
 
               // 3. Attempt to close the popup
@@ -98,10 +108,19 @@ async function startServer() {
   app.get(["/auth/callback", "/auth/callback/"], handleOAuthCallback);
   app.get("/", handleOAuthCallback);
 
+  app.post("/api/auth/logout", (req, res) => {
+    res.clearCookie("gumroad_access_token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict'
+    });
+    res.json({ success: true });
+  });
+
   // API Routes
   app.get("/api/products", async (req, res) => {
     try {
-      const accessToken = req.headers.authorization?.split(" ")[1];
+      const accessToken = req.cookies?.gumroad_access_token || req.headers.authorization?.split(" ")[1];
       if (!accessToken) {
         return res.status(401).json({ error: "Gumroad Access Token not provided" });
       }
@@ -117,7 +136,7 @@ async function startServer() {
 
   app.get("/api/sales", async (req, res) => {
     try {
-      const accessToken = req.headers.authorization?.split(" ")[1];
+      const accessToken = req.cookies?.gumroad_access_token || req.headers.authorization?.split(" ")[1];
       if (!accessToken) {
         return res.status(401).json({ error: "Gumroad Access Token not provided" });
       }
@@ -133,7 +152,7 @@ async function startServer() {
 
   app.get("/api/user", async (req, res) => {
     try {
-      const accessToken = req.headers.authorization?.split(" ")[1];
+      const accessToken = req.cookies?.gumroad_access_token || req.headers.authorization?.split(" ")[1];
       if (!accessToken) {
         return res.status(401).json({ error: "Gumroad Access Token not provided" });
       }
@@ -149,7 +168,7 @@ async function startServer() {
 
   app.get("/api/payouts", async (req, res) => {
     try {
-      const accessToken = req.headers.authorization?.split(" ")[1];
+      const accessToken = req.cookies?.gumroad_access_token || req.headers.authorization?.split(" ")[1];
       if (!accessToken) {
         return res.status(401).json({ error: "Gumroad Access Token not provided" });
       }
@@ -166,7 +185,7 @@ async function startServer() {
   // Action Routes
   app.put("/api/sales/:id/refund", async (req, res) => {
     try {
-      const accessToken = req.headers.authorization?.split(" ")[1];
+      const accessToken = req.cookies?.gumroad_access_token || req.headers.authorization?.split(" ")[1];
       if (!accessToken) return res.status(401).json({ error: "Unauthorized" });
       
       const { amount_cents } = req.body;
@@ -182,7 +201,7 @@ async function startServer() {
 
   app.post("/api/sales/:id/resend_receipt", async (req, res) => {
     try {
-      const accessToken = req.headers.authorization?.split(" ")[1];
+      const accessToken = req.cookies?.gumroad_access_token || req.headers.authorization?.split(" ")[1];
       if (!accessToken) return res.status(401).json({ error: "Unauthorized" });
       
       const response = await axios.post(`${GUMROAD_API_BASE}/sales/${req.params.id}/resend_receipt`, {
@@ -196,7 +215,7 @@ async function startServer() {
 
   app.put("/api/sales/:id/mark_as_shipped", async (req, res) => {
     try {
-      const accessToken = req.headers.authorization?.split(" ")[1];
+      const accessToken = req.cookies?.gumroad_access_token || req.headers.authorization?.split(" ")[1];
       if (!accessToken) return res.status(401).json({ error: "Unauthorized" });
       
       const { tracking_url } = req.body;
@@ -212,7 +231,7 @@ async function startServer() {
 
   app.put("/api/products/:id/enable", async (req, res) => {
     try {
-      const accessToken = req.headers.authorization?.split(" ")[1];
+      const accessToken = req.cookies?.gumroad_access_token || req.headers.authorization?.split(" ")[1];
       if (!accessToken) return res.status(401).json({ error: "Unauthorized" });
       
       const response = await axios.put(`${GUMROAD_API_BASE}/products/${req.params.id}/enable`, {
@@ -226,7 +245,7 @@ async function startServer() {
 
   app.put("/api/products/:id/disable", async (req, res) => {
     try {
-      const accessToken = req.headers.authorization?.split(" ")[1];
+      const accessToken = req.cookies?.gumroad_access_token || req.headers.authorization?.split(" ")[1];
       if (!accessToken) return res.status(401).json({ error: "Unauthorized" });
       
       const response = await axios.put(`${GUMROAD_API_BASE}/products/${req.params.id}/disable`, {
@@ -254,7 +273,7 @@ async function startServer() {
 
   app.post("/api/licenses/:license_key/enable", async (req, res) => {
     try {
-      const accessToken = req.headers.authorization?.split(" ")[1];
+      const accessToken = req.cookies?.gumroad_access_token || req.headers.authorization?.split(" ")[1];
       if (!accessToken) return res.status(401).json({ error: "Unauthorized" });
       
       const response = await axios.post(`${GUMROAD_API_BASE}/licenses/enable`, {
@@ -270,7 +289,7 @@ async function startServer() {
 
   app.post("/api/licenses/:license_key/disable", async (req, res) => {
     try {
-      const accessToken = req.headers.authorization?.split(" ")[1];
+      const accessToken = req.cookies?.gumroad_access_token || req.headers.authorization?.split(" ")[1];
       if (!accessToken) return res.status(401).json({ error: "Unauthorized" });
       
       const response = await axios.post(`${GUMROAD_API_BASE}/licenses/disable`, {
@@ -286,7 +305,7 @@ async function startServer() {
 
   app.post("/api/licenses/:license_key/decrement-uses", async (req, res) => {
     try {
-      const accessToken = req.headers.authorization?.split(" ")[1];
+      const accessToken = req.cookies?.gumroad_access_token || req.headers.authorization?.split(" ")[1];
       if (!accessToken) return res.status(401).json({ error: "Unauthorized" });
       
       console.log("Decrementing uses for:", req.params.license_key, "Product ID:", req.body.product_id);
@@ -305,7 +324,7 @@ async function startServer() {
 
   app.post("/api/licenses/:license_key/rotate", async (req, res) => {
     try {
-      const accessToken = req.headers.authorization?.split(" ")[1];
+      const accessToken = req.cookies?.gumroad_access_token || req.headers.authorization?.split(" ")[1];
       if (!accessToken) return res.status(401).json({ error: "Unauthorized" });
       
       const response = await axios.post(`${GUMROAD_API_BASE}/licenses/rotate`, {
@@ -321,7 +340,7 @@ async function startServer() {
 
   app.post("/api/agent/run", async (req, res) => {
     try {
-      const accessToken = req.headers.authorization?.split(" ")[1];
+      const accessToken = req.cookies?.gumroad_access_token || req.headers.authorization?.split(" ")[1];
       if (!accessToken) return res.status(401).json({ error: "Unauthorized" });
       
       const { instructions } = req.body;

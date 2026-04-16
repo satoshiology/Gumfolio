@@ -9,11 +9,16 @@ export function createServerAgent(accessToken: string) {
   });
 
   const tools: ToolDefinition[] = Array.from(ServerActionRegistry.entries()).map(([id, action]) => ({
-    name: id,
+    handle: id,
     description: action.description,
-    parameters: action.parameters,
+    inputSchema: action.parameters,
     execute: async (args: any) => await action.execute(accessToken, ...Object.values(args)),
   }));
+
+  om.registerIntegration('ServerActions', {
+    name: 'ServerActions',
+    tools: tools
+  });
 
   const agent = om.createAgent({
     name: 'GumroadAgent',
@@ -21,7 +26,9 @@ export function createServerAgent(accessToken: string) {
     instructions: `You are the Gumfolio AI Strategist. You have full administrative access to the user's Gumroad account via your tools.
     WHEN THE USER ASKS YOU TO PERFORM ACTIONS LIKE REFUNDING, ENABLING, DISABLING, ROTATING, OR INCREMENTING LICENSE USAGE, YOU MUST USE THE PROVIDED TOOLS. DO NOT ASK THE USER TO LOG IN MANUALLY.
     You are an autonomous agent capable of executing business actions on behalf of the user.`,
-    tools: tools,
+    integrations: [
+      { integration: 'ServerActions', credential: { type: 'custom', config: {} } }
+    ],
   });
 
   return agent;

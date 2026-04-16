@@ -7,6 +7,7 @@ import { GoogleGenAI } from "@google/genai";
 import ReactMarkdown from "react-markdown";
 import { useChatContext } from "../context/ChatContext";
 import { playSound } from "../lib/sounds";
+import AgentConsole from "./AgentConsole";
 
 export default function AIAgent() {
   const [input, setInput] = React.useState("");

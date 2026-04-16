@@ -21,8 +21,8 @@ export default function Splash({ onAuthenticated }: SplashProps) {
       if (!origin.endsWith('.run.app') && !origin.includes('localhost')) {
         return;
       }
-      if (event.data?.type === 'OAUTH_AUTH_SUCCESS' && event.data?.token) {
-        gumroadService.setToken(event.data.token);
+      if (event.data?.type === 'OAUTH_AUTH_SUCCESS') {
+        gumroadService.setToken();
         onAuthenticated();
       }
     };
@@ -30,7 +30,7 @@ export default function Splash({ onAuthenticated }: SplashProps) {
 
     // Listen for localStorage changes from the popup
     const handleStorage = (event: StorageEvent) => {
-      if (event.key === 'gumroad_access_token' && event.newValue) {
+      if (event.key === 'gumroad_authenticated' && event.newValue === 'true') {
         onAuthenticated();
       }
     };

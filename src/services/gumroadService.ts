@@ -2,21 +2,22 @@ import axios from "axios";
 import { Product, Sale, LicenseVerificationResponse, User, Payout } from "../types";
 
 export const gumroadService = {
-  getToken(): string | null {
-    return localStorage.getItem("gumroad_access_token");
+  getToken(): boolean {
+    return localStorage.getItem("gumroad_authenticated") === "true";
   },
 
-  setToken(token: string) {
-    localStorage.setItem("gumroad_access_token", token);
+  setToken() {
+    localStorage.setItem("gumroad_authenticated", "true");
   },
 
   clearToken() {
-    localStorage.removeItem("gumroad_access_token");
+    localStorage.removeItem("gumroad_authenticated");
   },
 
   getHeaders() {
-    const token = this.getToken();
-    return token ? { Authorization: `Bearer ${token}` } : {};
+    // We no longer need to send the Authorization header manually,
+    // as it is sent securely via HttpOnly cookie
+    return {};
   },
 
   async getProducts(): Promise<{ products: Product[] }> {

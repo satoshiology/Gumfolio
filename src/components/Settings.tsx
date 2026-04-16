@@ -8,8 +8,13 @@ export default function Settings() {
   const navigate = useNavigate();
   const [soundEnabled, setSoundEnabled] = React.useState(localStorage.getItem('soundEnabled') !== 'false');
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     gumroadService.clearToken();
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (e) {
+      console.error('Logout request failed', e);
+    }
     window.location.href = "/";
   };
 
