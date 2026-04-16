@@ -70,7 +70,7 @@
   transition: 0.5s;
   animation: gradient_301 5s ease infinite, alert_pulse 2s infinite;
   border: double 4px transparent;
-  background-image: linear-gradient(#050505, #050505),
+  background-image: linear-gradient(#000000, #000000),
     linear-gradient(
       137.48deg,
       #00ff41 10%,

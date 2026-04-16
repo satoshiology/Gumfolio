@@ -58,13 +58,9 @@ export default function VoiceChat({ onTranscript }: VoiceChatProps) {
     }
     
     if (isListening) {
-      // Explicitly stop and set state
-      recognitionRef.current.stop();
+      // Explicitly abort to immediately stop listening and discard pending results
+      recognitionRef.current.abort();
       setIsListening(false);
-      // Ensure the recognition instance is fresh or cleaned up
-      recognitionRef.current.onend = () => {
-          setIsListening(false);
-      };
     } else {
       try {
           recognitionRef.current.start();
