@@ -1,5 +1,5 @@
 import * as React from "react";
-import { ShoppingBag, Sparkles, Palette, ArrowDown, Loader2, AlertCircle, CheckCircle } from "lucide-react";
+import { ShoppingBag, ArrowDown, Loader2, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "@/src/lib/utils";
 import { gumroadService } from "../services/gumroadService";
