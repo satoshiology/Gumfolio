@@ -6,6 +6,7 @@ import { gumroadService } from "../services/gumroadService";
 import { GoogleGenAI } from "@google/genai";
 import ReactMarkdown from "react-markdown";
 import { useChatContext } from "../context/ChatContext";
+import { playSound } from "../lib/sounds";
 
 export default function AIAgent() {
   const [input, setInput] = React.useState("");
@@ -58,6 +59,7 @@ ${context}`,
     if (text.toLowerCase().includes("clear history")) {
       clearHistory();
       setInput("");
+      playSound('click');
       return;
     }
 
@@ -65,6 +67,7 @@ ${context}`,
     setMessages(prev => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
+    playSound('messageSend');
     
     try {
       const response = await chatRef.current.sendMessage({ message: text });
@@ -91,7 +94,7 @@ ${context}`,
       className="max-w-2xl mx-auto flex flex-col h-full w-full"
     >
       <header className="mb-8 text-center flex justify-between items-center px-4">
-        <button onClick={() => setConsoleOpen(true)} className="text-secondary hover:text-primary transition-colors">
+        <button onClick={() => { setConsoleOpen(true); playSound('click'); }} className="text-secondary hover:text-primary transition-colors">
           <Zap className="w-6 h-6" />
         </button>
         <h1 className="text-4xl font-headline font-extrabold tracking-tight text-on-surface">AI Strategist</h1>
@@ -119,8 +122,9 @@ ${context}`,
             {messages.map((msg, i) => (
               <motion.div 
                 key={i}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ type: "spring", stiffness: 300, damping: 25 }}
                 className={cn(
                   "flex flex-col max-w-[85%]",
                   msg.role === "user" ? "ml-auto items-end" : "mr-auto items-start"
