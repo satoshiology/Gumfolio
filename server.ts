@@ -74,7 +74,8 @@ async function startServer() {
 
               // 2. Try postMessage as a secondary method
               if (window.opener) {
-                window.opener.postMessage({ type: 'OAUTH_AUTH_SUCCESS', token: '${access_token}' }, '*');
+                const targetOrigin = '${process.env.APP_URL || ""}' || window.location.origin;
+                window.opener.postMessage({ type: 'OAUTH_AUTH_SUCCESS', token: '${access_token}' }, targetOrigin);
               }
 
               // 3. Attempt to close the popup
