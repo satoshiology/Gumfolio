@@ -11,8 +11,12 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const GUMROAD_CLIENT_ID = process.env.GUMROAD_CLIENT_ID || "v_Nr8bJla9JNCjswGZtDf3GuSKAIG651aCwULJq8GvE";
-const GUMROAD_CLIENT_SECRET = process.env.GUMROAD_CLIENT_SECRET || "iQqr7wwT91t2-FWyv7VzzecuCKqafEk750JEmTANPPo";
+const GUMROAD_CLIENT_ID = process.env.GUMROAD_CLIENT_ID;
+const GUMROAD_CLIENT_SECRET = process.env.GUMROAD_CLIENT_SECRET;
+
+if (!GUMROAD_CLIENT_ID || !GUMROAD_CLIENT_SECRET) {
+  console.warn("WARNING: GUMROAD_CLIENT_ID or GUMROAD_CLIENT_SECRET is not set in environment variables. OAuth flow may fail.");
+}
 
 async function startServer() {
   const app = express();
@@ -28,7 +32,7 @@ async function startServer() {
   // OAuth Routes
   app.get("/api/auth/url", (req, res) => {
     const params = new URLSearchParams({
-      client_id: GUMROAD_CLIENT_ID,
+      client_id: GUMROAD_CLIENT_ID || "",
       redirect_uri: EXACT_REDIRECT_URI,
       response_type: "code",
       scope: "account view_profile edit_products view_sales view_payouts mark_sales_as_shipped edit_sales",
@@ -47,8 +51,8 @@ async function startServer() {
     try {
       // Gumroad expects form-urlencoded data, matching the cURL --data flags
       const tokenParams = new URLSearchParams({
-        client_id: GUMROAD_CLIENT_ID,
-        client_secret: GUMROAD_CLIENT_SECRET,
+        client_id: GUMROAD_CLIENT_ID || "",
+        client_secret: GUMROAD_CLIENT_SECRET || "",
         code: code as string,
         redirect_uri: EXACT_REDIRECT_URI,
       });
