@@ -37,7 +37,7 @@ function AnimatedRoutes() {
   
   return (
     <AnimatePresence mode="wait">
-      <div key={location.pathname}>
+      <div key={location.pathname} className="h-full">
         <Routes location={location}>
           <Route path="/" element={<Dashboard />} />
           <Route path="/sales" element={<SalesFeed />} />
@@ -78,7 +78,7 @@ export default function App() {
   return (
     <ChatProvider>
       <Router>
-        <div className="min-h-screen bg-surface-dim text-on-surface font-body selection:bg-primary/30 relative">
+        <div className="min-h-screen bg-surface-dim text-on-surface font-body selection:bg-primary/30 relative flex flex-col">
           
           {/* Grip Icons */}
           <button onClick={() => setLeftPanel(true)} className="fixed left-0 top-1/2 -translate-y-1/2 z-40 p-2 opacity-50">
@@ -96,7 +96,7 @@ export default function App() {
           </SidePanel>
 
           <TopAppBar />
-          <main className="pt-24 pb-32 px-6 max-w-7xl mx-auto">
+          <main className="flex-1 w-full max-w-7xl mx-auto px-6 overflow-hidden flex flex-col pt-24 pb-20">
             <AnimatedRoutes />
           </main>
           <BottomNavBar />

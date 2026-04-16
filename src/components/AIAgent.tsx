@@ -5,7 +5,6 @@ import { cn } from "@/src/lib/utils";
 import { gumroadService } from "../services/gumroadService";
 import { GoogleGenAI } from "@google/genai";
 import ReactMarkdown from "react-markdown";
-import VoiceChat from "./VoiceChat";
 import { useChatContext } from "../context/ChatContext";
 
 export default function AIAgent() {
@@ -89,7 +88,7 @@ ${context}`,
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 1.05 }}
-      className="max-w-2xl mx-auto flex flex-col h-[calc(100vh-16rem)]"
+      className="max-w-2xl mx-auto flex flex-col h-full w-full"
     >
       <header className="mb-8 text-center flex justify-between items-center px-4">
         <button onClick={() => setConsoleOpen(true)} className="text-secondary hover:text-primary transition-colors">
@@ -108,7 +107,7 @@ ${context}`,
         </div>
       )}
 
-      <div className="flex-1 overflow-hidden flex flex-col">
+      <div className="flex-1 overflow-hidden flex flex-col min-h-0">
         <motion.div 
           key="chat"
           initial={{ opacity: 0, x: -20 }}
@@ -116,7 +115,7 @@ ${context}`,
           exit={{ opacity: 0, x: 20 }}
           className="flex flex-col h-full overflow-hidden"
         >
-          <div className="flex-1 overflow-y-auto space-y-6 px-2 mb-6 scrollbar-hide">
+          <div className="flex-1 overflow-y-auto space-y-6 px-2 scrollbar-hide py-4">
             {messages.map((msg, i) => (
               <motion.div 
                 key={i}
@@ -152,7 +151,7 @@ ${context}`,
             )}
           </div>
 
-          <div className="relative shrink-0">
+          <div className="relative shrink-0 p-2">
             <div className="absolute inset-0 bg-primary/10 blur-2xl rounded-full -z-10 opacity-50"></div>
             <div className="bg-surface-container-lowest border border-outline-variant/15 rounded-2xl p-2 flex items-center gap-2 shadow-2xl">
               <input 
@@ -162,9 +161,6 @@ ${context}`,
                 placeholder="Ask your strategist..." 
                 className="flex-1 bg-transparent border-none focus:ring-0 text-on-surface placeholder:text-zinc-600 px-4 py-2 text-sm"
               />
-              <VoiceChat onTranscript={(transcript) => {
-                setInput(transcript);
-              }} />
               <button 
                 onClick={handleSend}
                 disabled={isLoading}
