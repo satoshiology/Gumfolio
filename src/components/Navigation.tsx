@@ -5,6 +5,7 @@ import { Bell, LayoutDashboard, Package, CreditCard, Key, User, Sparkles, Settin
 import { cn } from "@/src/lib/utils";
 import { gumroadService } from "../services/gumroadService";
 import { User as UserType } from "../types";
+import { useSoundContext } from "../context/SoundContext";
 
 export function TopAppBar() {
   const [user, setUser] = React.useState<UserType | null>(null);
@@ -61,6 +62,7 @@ export function TopAppBar() {
 
 export function BottomNavBar() {
   const location = useLocation();
+  const { playClick } = useSoundContext();
 
   const navItems = [
     { icon: LayoutDashboard, label: "Dash", path: "/" },
@@ -78,6 +80,11 @@ export function BottomNavBar() {
           <Link
             key={item.path}
             to={item.path}
+            onClick={() => {
+              if (location.pathname !== item.path) {
+                playClick();
+              }
+            }}
             className={cn(
               "flex flex-col items-center justify-center p-3 transition-all duration-300 ease-out relative",
               isActive 

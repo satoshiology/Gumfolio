@@ -6,12 +6,15 @@ import { gumroadService } from "../services/gumroadService";
 import { GoogleGenAI } from "@google/genai";
 import ReactMarkdown from "react-markdown";
 import { useChatContext } from "../context/ChatContext";
+import AgentConsole from "./AgentConsole";
+import { useSoundContext } from "../context/SoundContext";
 
 export default function AIAgent() {
   const [input, setInput] = React.useState("");
   const [consoleOpen, setConsoleOpen] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
   const { messages, setMessages, clearHistory } = useChatContext();
+  const { playSend, playReceive } = useSoundContext();
 
   const chatRef = React.useRef<any>(null);
 
@@ -65,6 +68,7 @@ ${context}`,
     setMessages(prev => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
+    playSend();
     
     try {
       const response = await chatRef.current.sendMessage({ message: text });
@@ -72,6 +76,7 @@ ${context}`,
         role: "assistant", 
         content: response.text 
       }]);
+      playReceive();
     } catch (error) {
       console.error("Chat Error:", error);
       setMessages(prev => [...prev, { 

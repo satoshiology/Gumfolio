@@ -15,6 +15,7 @@ import Settings from "./components/Settings";
 import { gumroadService } from "./services/gumroadService";
 import { Smartphone } from "lucide-react";
 import { ChatProvider } from "./context/ChatContext";
+import { SoundProvider, useSoundContext } from "./context/SoundContext";
 import { SidePanel } from "./components/SidePanel";
 import { AlliesPanel } from "./components/AlliesPanel";
 
@@ -75,10 +76,9 @@ export default function App() {
 
   const gripUrl = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMwMEZGNDEiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0ibHVjaWRlIGx1Y2lkZS1ncmlwLXZlcnRpY2FsLWljb24gbHVjaWRlLWdyaXAtdmVydGljYWwiPjxjaXJjbGUgY3g9IjkiIGN5PSIxMiIgcj0iMSIvPjxjaXJjbGUgY3g9IjkiIGN5PSI1IiByPSIxIi8+PGNpcmNsZSBjeD0iOSIgY3k9IjE5IiByPSIxIi8+PGNpcmNsZSBjeD0iMTUiIGN5PSIxMiIgcj0iMSIvPjxjaXJjbGUgY3g9IjE1IiBjeT0iNSIgcj0iMSIvPjxjaXJjbGUgY3g9IjE1IiBjeT0iMTkiIHI9IjEiLz48L3N2Zz4=";
 
-  return (
-    <ChatProvider>
-      <Router>
-        <div className="min-h-screen bg-surface-dim text-on-surface font-body selection:bg-primary/30 relative flex flex-col">
+  const appContent = (
+    <div className="min-h-screen bg-surface-dim text-on-surface font-body selection:bg-primary/30 relative flex flex-col">
+      <InitSoundWrapper />
           
           {/* Grip Icons */}
           <button onClick={() => setLeftPanel(true)} className="fixed left-0 top-1/2 -translate-y-1/2 z-40 p-2 opacity-50">
@@ -99,9 +99,39 @@ export default function App() {
           <main className="flex-1 w-full max-w-7xl mx-auto px-6 overflow-hidden flex flex-col pt-24 pb-20">
             <AnimatedRoutes />
           </main>
-          <BottomNavBar />
-        </div>
-      </Router>
-    </ChatProvider>
+      <BottomNavBar />
+    </div>
   );
+
+  return (
+    <SoundProvider>
+      <ChatProvider>
+        <Router>
+          {appContent}
+        </Router>
+      </ChatProvider>
+    </SoundProvider>
+  );
+}
+
+function InitSoundWrapper() {
+  const { init } = useSoundContext();
+
+  React.useEffect(() => {
+    const handleInteraction = () => {
+      init();
+      document.removeEventListener('click', handleInteraction);
+      document.removeEventListener('touchstart', handleInteraction);
+    };
+
+    document.addEventListener('click', handleInteraction);
+    document.addEventListener('touchstart', handleInteraction);
+
+    return () => {
+      document.removeEventListener('click', handleInteraction);
+      document.removeEventListener('touchstart', handleInteraction);
+    };
+  }, [init]);
+
+  return null;
 }
