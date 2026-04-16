@@ -1,0 +1,40 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "name": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "user"] }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "ActionLog": {
+      "title": "ActionLog",
+      "description": "Log of actions performed by Human or Lux",
+      "type": "object",
+      "properties": {
+        "timestamp": { "type": "string", "format": "date-time" },
+        "originator": { "type": "string" },
+        "function_executed": { "type": "string" },
+        "parameters_passed": { "type": "string" },
+        "state_hash_before": { "type": "string" },
+        "state_hash_after": { "type": "string" }
+      },
+      "required": ["timestamp", "originator", "function_executed"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "User" },
+      "description": "User documents"
+    },
+    "/action_logs/{logId}": {
+      "schema": { "$ref": "ActionLog" },
+      "description": "Logs of user and Lux actions"
+    }
+  }
+}
