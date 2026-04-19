@@ -5,12 +5,31 @@ import { motion } from "motion/react";
 import { cn } from "@/src/lib/utils";
 import { gumroadService } from "../services/gumroadService";
 import { Product, Sale } from "../types";
+import { useStrategicDrift } from "../hooks/useStrategicDrift";
+import { DriftAlertDisplay } from "./DriftAlertDisplay";
+import { ImpactReportDisplay } from "./ImpactReportDisplay";
+
+const container = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const item = {
+  hidden: { y: 20, opacity: 0 },
+  show: { y: 0, opacity: 1 }
+};
 
 export default function Dashboard() {
   const [products, setProducts] = React.useState<Product[]>([]);
   const [sales, setSales] = React.useState<Sale[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+  const driftAlerts = useStrategicDrift(products, sales);
 
   React.useEffect(() => {
     async function fetchData() {
@@ -69,20 +88,23 @@ export default function Dashboard() {
 
   return (
     <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
+      variants={container}
+      initial="hidden"
+      animate="show"
       className="space-y-8"
     >
+      <DriftAlertDisplay alerts={driftAlerts} />
+      <ImpactReportDisplay />
+
       {error && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 flex items-center gap-3 text-red-400">
+        <motion.div variants={item} className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 flex items-center gap-3 text-red-400">
           <AlertCircle className="w-5 h-5 flex-shrink-0" />
           <p className="text-sm font-medium">{error}</p>
-        </div>
+        </motion.div>
       )}
 
       {/* Hero Section: Total Revenue */}
-      <section className="relative overflow-hidden rounded-[2rem] p-8 mesh-gradient-bg shadow-[0_0_50px_rgba(0,255,65,0.2)]">
+      <motion.section variants={item} className="relative overflow-hidden rounded-[2rem] p-8 mesh-gradient-bg shadow-[0_0_50px_rgba(0,255,65,0.2)]">
         <div className="absolute inset-0 noise-overlay pointer-events-none"></div>
         <div className="relative z-10 flex justify-between items-start">
           <div className="flex flex-col items-start gap-1">
@@ -105,10 +127,10 @@ export default function Dashboard() {
           </div>
         </div>
         <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
-      </section>
+      </motion.section>
 
       {/* Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <motion.div variants={container} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <MetricCard 
           label="Total Sales" 
           value={totalSales.toLocaleString()} 
@@ -123,20 +145,14 @@ export default function Dashboard() {
           icon={BookOpen} 
           color="text-primary" 
         />
-        <div className="bg-surface-container-lowest rounded-xl p-6 flex flex-col justify-between min-h-[160px] border border-outline-variant/10 shadow-inner">
-          <div className="flex justify-between items-start">
-            <span className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">
-              Avg. Order Value
-            </span>
-            <BarChart3 className="w-6 h-6 text-tertiary" />
-          </div>
-          <div className="mt-4">
-            <h3 className="font-headline text-4xl font-bold text-on-surface tracking-tight">
-              ${totalSales > 0 ? (totalRevenue / totalSales).toFixed(2) : "0.00"}
-            </h3>
-          </div>
-        </div>
-      </div>
+        <MetricCard 
+          label="Avg. Order Value" 
+          value={`$${totalSales > 0 ? (totalRevenue / totalSales).toFixed(2) : "0.00"}`} 
+          subValue="Per Sale"
+          icon={BarChart3} 
+          color="text-tertiary" 
+        />
+      </motion.div>
 
       {/* Revenue Chart Section */}
       <section className="glass-card rounded-xl p-8 space-y-6">
@@ -202,19 +218,6 @@ export default function Dashboard() {
             )}
           </div>
         </div>
-        <div className="glass-card rounded-xl p-6 flex flex-col justify-center items-center text-center space-y-4 relative overflow-hidden">
-          <div className="absolute inset-0 noise-overlay pointer-events-none"></div>
-          <div className="w-16 h-16 rounded-full bg-tertiary/10 flex items-center justify-center mb-2">
-            <Rocket className="w-8 h-8 text-tertiary" />
-          </div>
-          <h3 className="font-headline text-xl font-bold">Ready to scale?</h3>
-          <p className="text-on-surface-variant text-sm px-6">
-            Your top product is performing well. Try setting up an upsell to increase your average order value.
-          </p>
-          <button className="mt-4 px-6 py-3 bg-primary text-black font-bold rounded-xl shadow-[0_0_20px_rgba(0,255,65,0.4)] hover:scale-105 active:scale-95 transition-all">
-            Create Upsell
-          </button>
-        </div>
       </section>
     </motion.div>
   );
@@ -222,7 +225,12 @@ export default function Dashboard() {
 
 function MetricCard({ label, value, subValue, icon: Icon, color }: any) {
   return (
-    <div className="glass-card rounded-xl p-6 flex flex-col justify-between min-h-[160px]">
+    <motion.div 
+      variants={item}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      className="glass-card rounded-xl p-6 flex flex-col justify-between min-h-[160px] cursor-pointer"
+    >
       <div className="flex justify-between items-start">
         <span className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">
           {label}
@@ -233,13 +241,16 @@ function MetricCard({ label, value, subValue, icon: Icon, color }: any) {
         <h3 className="font-headline text-4xl font-bold text-on-surface tracking-tight">{value}</h3>
         <p className={cn(color, "text-xs mt-1 font-medium")}>{subValue}</p>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
 function ProductItem({ title, sales, revenue, icon: Icon, iconColor, bgColor }: any) {
   return (
-    <div className="flex items-center gap-4 p-3 rounded-xl bg-surface-container-high/40 hover:bg-surface-container-high transition-colors">
+    <motion.div 
+      whileHover={{ x: 5, backgroundColor: "rgba(255,255,255,0.05)" }}
+      className="flex items-center gap-4 p-3 rounded-xl bg-surface-container-high/40 hover:bg-surface-container-high transition-colors cursor-pointer"
+    >
       <div className={cn("w-12 h-12 rounded-lg flex items-center justify-center", bgColor)}>
         <Icon className={cn("w-6 h-6", iconColor)} />
       </div>
@@ -248,6 +259,6 @@ function ProductItem({ title, sales, revenue, icon: Icon, iconColor, bgColor }: 
         <p className="text-[10px] text-on-surface-variant">{sales}</p>
       </div>
       <p className="text-sm font-bold text-secondary">{revenue}</p>
-    </div>
+    </motion.div>
   );
 }

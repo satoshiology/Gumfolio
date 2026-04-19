@@ -5,19 +5,19 @@ import { fileURLToPath } from "url";
 import axios from "axios";
 import dotenv from "dotenv";
 import { WebSocketServer, WebSocket } from "ws";
-import { z } from "zod";
 
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const GUMROAD_CLIENT_ID = process.env.GUMROAD_CLIENT_ID;
-const GUMROAD_CLIENT_SECRET = process.env.GUMROAD_CLIENT_SECRET;
+const GUMROAD_CLIENT_ID = process.env.GUMROAD_CLIENT_ID || "v_Nr8bJla9JNCjswGZtDf3GuSKAIG651aCwULJq8GvE";
+const GUMROAD_CLIENT_SECRET = process.env.GUMROAD_CLIENT_SECRET || "iQqr7wwT91t2-FWyv7VzzecuCKqafEk750JEmTANPPo";
 
-if (!GUMROAD_CLIENT_ID || !GUMROAD_CLIENT_SECRET) {
-  console.warn("WARNING: GUMROAD_CLIENT_ID or GUMROAD_CLIENT_SECRET is not set in environment variables. OAuth flow may fail.");
-}
+// Agent Configuration State
+const agentIntegrations: Record<string, boolean> = {
+    gumroad: true
+};
 
 async function startServer() {
   const app = express();
@@ -33,7 +33,7 @@ async function startServer() {
   // OAuth Routes
   app.get("/api/auth/url", (req, res) => {
     const params = new URLSearchParams({
-      client_id: GUMROAD_CLIENT_ID || "",
+      client_id: GUMROAD_CLIENT_ID,
       redirect_uri: EXACT_REDIRECT_URI,
       response_type: "code",
       scope: "account view_profile edit_products view_sales view_payouts mark_sales_as_shipped edit_sales",
@@ -52,8 +52,8 @@ async function startServer() {
     try {
       // Gumroad expects form-urlencoded data, matching the cURL --data flags
       const tokenParams = new URLSearchParams({
-        client_id: GUMROAD_CLIENT_ID || "",
-        client_secret: GUMROAD_CLIENT_SECRET || "",
+        client_id: GUMROAD_CLIENT_ID,
+        client_secret: GUMROAD_CLIENT_SECRET,
         code: code as string,
         redirect_uri: EXACT_REDIRECT_URI,
       });
@@ -79,8 +79,7 @@ async function startServer() {
 
               // 2. Try postMessage as a secondary method
               if (window.opener) {
-                const targetOrigin = '${process.env.APP_URL || ""}' || window.location.origin;
-                window.opener.postMessage({ type: 'OAUTH_AUTH_SUCCESS', token: '${access_token}' }, targetOrigin);
+                window.opener.postMessage({ type: 'OAUTH_AUTH_SUCCESS', token: '${access_token}' }, '*');
               }
 
               // 3. Attempt to close the popup
@@ -325,26 +324,25 @@ async function startServer() {
     }
   });
 
+  // Agent Configuration State
+  const agentIntegrations: Record<string, boolean> = {
+      gumroad: true
+  };
+
+  app.post("/api/agent/config", async (req, res) => {
+      const { integrationId, enabled } = req.body;
+      agentIntegrations[integrationId] = enabled;
+      res.json({ success: true, agentIntegrations });
+  });
+
   app.post("/api/agent/run", async (req, res) => {
     try {
       const accessToken = req.headers.authorization?.split(" ")[1];
       if (!accessToken) return res.status(401).json({ error: "Unauthorized" });
-
-      const schema = z.object({
-        instructions: z.string().min(1, "Instructions are required"),
-      });
-
-      const validation = schema.safeParse(req.body);
-      if (!validation.success) {
-        return res.status(400).json({
-          error: "Invalid request body",
-          details: validation.error.errors,
-        });
-      }
-
-      const { instructions } = validation.data;
+      
+      const { instructions } = req.body;
       const { createServerAgent } = await import("./server_services/AgentOrchestrator.js");
-      const agent = createServerAgent(accessToken);
+      const agent = createServerAgent(accessToken, agentIntegrations);
       const result = await agent.run(instructions);
       res.json({ success: true, result });
     } catch (error: any) {

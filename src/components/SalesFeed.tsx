@@ -1,5 +1,6 @@
 import * as React from "react";
-import { ShoppingBag, ArrowDown, Loader2, AlertCircle } from "lucide-react";
+import { ShoppingBag, Sparkles, Palette, ArrowDown, Loader2, AlertCircle, CheckCircle, Search } from "lucide-react";
+import { performSemanticSearch } from "../services/semanticSearchService";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "@/src/lib/utils";
 import { gumroadService } from "../services/gumroadService";
@@ -9,7 +10,11 @@ import { HoldButton } from "./HoldButton";
 
 export default function SalesFeed() {
   const [sales, setSales] = React.useState<Sale[]>([]);
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const [isSemanticMode, setIsSemanticMode] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
+  const [searching, setSearching] = React.useState(false);
+  const [semanticMatches, setSemanticMatches] = React.useState<string[]>([]);
   const [error, setError] = React.useState<string | null>(null);
   const [successMsg, setSuccessMsg] = React.useState<string | null>(null);
   const [loadingAction, setLoadingAction] = React.useState<string | null>(null);
@@ -49,6 +54,27 @@ export default function SalesFeed() {
     .filter(s => new Date(s.created_at).toDateString() === new Date().toDateString())
     .reduce((acc, s) => acc + s.price / 100, 0);
 
+  React.useEffect(() => {
+    async function runSearch() {
+        if (!isSemanticMode || searchQuery.length < 3) {
+            setSemanticMatches([]);
+            return;
+        }
+        setSearching(true);
+        const matches = await performSemanticSearch(searchQuery, sales);
+        setSemanticMatches(matches);
+        setSearching(false);
+    }
+    runSearch();
+  }, [searchQuery, isSemanticMode, sales]);
+
+  const filteredSales = isSemanticMode 
+    ? sales.filter(s => semanticMatches.includes(s.id))
+    : sales.filter(s => 
+      s.product_name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      s.email.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
   const lastHourSales = sales.filter(s => {
     const saleDate = new Date(s.created_at);
     const now = new Date();
@@ -79,6 +105,29 @@ export default function SalesFeed() {
         </div>
       )}
 
+      {/* Global Search */}
+      <section className="px-2">
+        <div className="w-full max-w-2xl mx-auto">
+            <div className="relative w-full shadow-2xl">
+              <Search className="absolute left-4 top-4 w-6 h-6 text-zinc-500" />
+              <input 
+                  type="text" 
+                  placeholder={isSemanticMode ? "Describe what you're looking for (e.g. 'high value customers')" : "Search all sales by product or email..."} 
+                  className="w-full bg-zinc-900 border border-white/10 rounded-2xl p-4 pl-14 text-lg focus:border-primary transition-colors outline-none focus:ring-2 focus:ring-primary/50 shadow-inner"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <button 
+                onClick={() => setIsSemanticMode(!isSemanticMode)}
+                className={cn("mt-3 px-4 py-1.5 text-xs rounded-full border flex ml-auto", isSemanticMode ? "bg-primary text-black border-primary" : "bg-zinc-800 text-zinc-400 border-zinc-700")}
+            >
+                {isSemanticMode ? "Semantic Active" : "Semantic Off"}
+            </button>
+        </div>
+        {searching && <p className="text-center text-primary text-sm mt-2 animate-pulse">AI Analyzing Sales...</p>}
+      </section>
+
       <section>
         <p className="font-label text-xs uppercase tracking-[0.2em] text-primary mb-2">Live Activity</p>
         <h2 className="text-4xl md:text-5xl font-headline font-extrabold tracking-tight mb-8">Sales Feed</h2>
@@ -104,7 +153,7 @@ export default function SalesFeed() {
           <span className="text-[10px] font-label text-zinc-500 uppercase tracking-widest">Auto-updating</span>
         </div>
         
-        {sales.map((sale) => (
+        {filteredSales.map((sale) => (
           <TransactionItem 
             key={sale.id}
             saleId={sale.id}
@@ -121,8 +170,8 @@ export default function SalesFeed() {
           />
         ))}
 
-        {sales.length === 0 && !error && (
-          <p className="text-on-surface-variant text-center py-12 italic">No transactions recorded yet.</p>
+        {filteredSales.length === 0 && !error && (
+          <p className="text-on-surface-variant text-center py-12 italic">No transactions match your search.</p>
         )}
       </section>
 

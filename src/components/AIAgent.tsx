@@ -1,20 +1,21 @@
 import * as React from "react";
-import { Sparkles, Send, Bot, Zap, BrainCircuit, MessageSquare, Loader2 } from "lucide-react";
+import { Sparkles, Send, Bot, Zap, BrainCircuit, MessageSquare, Loader2, Pin } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "@/src/lib/utils";
 import { gumroadService } from "../services/gumroadService";
 import { GoogleGenAI } from "@google/genai";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { useChatContext } from "../context/ChatContext";
-import { playSound } from "../lib/sounds";
+import { useStrategyContext } from "../context/StrategyContext";
+import AgentConsole from "./AgentConsole";
 
 export default function AIAgent() {
   const [input, setInput] = React.useState("");
   const [consoleOpen, setConsoleOpen] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
-  const { messages, setMessages, clearHistory } = useChatContext();
-
-  const chatRef = React.useRef<any>(null);
+  const { messages, setMessages, clearHistory, chatRef } = useChatContext();
+  const { pinItem } = useStrategyContext();
 
   React.useEffect(() => {
     if (!process.env.GEMINI_API_KEY) {
@@ -59,7 +60,6 @@ ${context}`,
     if (text.toLowerCase().includes("clear history")) {
       clearHistory();
       setInput("");
-      playSound('click');
       return;
     }
 
@@ -67,7 +67,6 @@ ${context}`,
     setMessages(prev => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
-    playSound('messageSend');
     
     try {
       const response = await chatRef.current.sendMessage({ message: text });
@@ -75,6 +74,12 @@ ${context}`,
         role: "assistant", 
         content: response.text 
       }]);
+      
+      // Auto-analyze for strategy-worthiness (simple heuristic)
+      const strategicKeywords = ["plan", "strategy", "optimize", "increase", "revenue", "scale", "tactics", "growth"];
+      if (strategicKeywords.some(keyword => response.text.toLowerCase().includes(keyword)) && response.text.length < 500) {
+        pinItem("Suggested: " + response.text, true);
+      }
     } catch (error) {
       console.error("Chat Error:", error);
       setMessages(prev => [...prev, { 
@@ -91,10 +96,10 @@ ${context}`,
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 1.05 }}
-      className="max-w-2xl mx-auto flex flex-col h-full w-full"
+      className="max-w-2xl mx-auto flex flex-col h-[calc(100vh-16rem)]"
     >
       <header className="mb-8 text-center flex justify-between items-center px-4">
-        <button onClick={() => { setConsoleOpen(true); playSound('click'); }} className="text-secondary hover:text-primary transition-colors">
+        <button onClick={() => setConsoleOpen(true)} className="text-secondary hover:text-primary transition-colors">
           <Zap className="w-6 h-6" />
         </button>
         <h1 className="text-4xl font-headline font-extrabold tracking-tight text-on-surface">AI Strategist</h1>
@@ -110,7 +115,7 @@ ${context}`,
         </div>
       )}
 
-      <div className="flex-1 overflow-hidden flex flex-col min-h-0">
+      <div className="flex-1 overflow-hidden flex flex-col">
         <motion.div 
           key="chat"
           initial={{ opacity: 0, x: -20 }}
@@ -118,13 +123,12 @@ ${context}`,
           exit={{ opacity: 0, x: 20 }}
           className="flex flex-col h-full overflow-hidden"
         >
-          <div className="flex-1 overflow-y-auto space-y-6 px-2 scrollbar-hide py-4">
+          <div className="flex-1 overflow-y-auto space-y-6 px-2 mb-6 scrollbar-hide">
             {messages.map((msg, i) => (
               <motion.div 
                 key={i}
-                initial={{ opacity: 0, y: 20, scale: 0.9 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
                 className={cn(
                   "flex flex-col max-w-[85%]",
                   msg.role === "user" ? "ml-auto items-end" : "mr-auto items-start"
@@ -139,11 +143,20 @@ ${context}`,
                   {msg.role === "user" ? (
                     msg.content
                   ) : (
-                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+                    <>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
+                      <button 
+                        onClick={() => pinItem(msg.content)}
+                        className="mt-2 opacity-50 hover:opacity-100 transition-opacity"
+                        title="Pin to Echo Chamber"
+                      >
+                       <Pin className="w-4 h-4" />
+                      </button>
+                    </>
                   )}
                 </div>
                 <span className="text-[10px] font-label text-zinc-600 uppercase tracking-widest mt-2 px-1">
-                  {msg.role === "user" ? "You" : "Noir Intelligence"}
+                  {msg.role === "user" ? "You" : "STRATEGY ALLY"}
                 </span>
               </motion.div>
             ))}
@@ -155,7 +168,7 @@ ${context}`,
             )}
           </div>
 
-          <div className="relative shrink-0 p-2">
+          <div className="relative shrink-0">
             <div className="absolute inset-0 bg-primary/10 blur-2xl rounded-full -z-10 opacity-50"></div>
             <div className="bg-surface-container-lowest border border-outline-variant/15 rounded-2xl p-2 flex items-center gap-2 shadow-2xl">
               <input 

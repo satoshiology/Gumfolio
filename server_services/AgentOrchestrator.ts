@@ -1,19 +1,21 @@
 import OpenMolt, { ToolDefinition } from 'openmolt';
 import { ServerActionRegistry } from './ServerActionRegistry';
 
-export function createServerAgent(accessToken: string) {
+export function createServerAgent(accessToken: string, integrations: Record<string, boolean>) {
   const om = new OpenMolt({
     llmProviders: {
       google: { apiKey: process.env.GEMINI_API_KEY! },
     },
   });
 
-  const tools: ToolDefinition[] = Array.from(ServerActionRegistry.entries()).map(([id, action]) => ({
-    name: id,
-    description: action.description,
-    parameters: action.parameters,
-    execute: async (args: any) => await action.execute(accessToken, ...Object.values(args)),
-  }));
+  const tools: ToolDefinition[] = Array.from(ServerActionRegistry.entries())
+    .filter(([id]) => integrations[id] !== false) // Only include if not explicitly disabled
+    .map(([id, action]) => ({
+      name: id,
+      description: action.description,
+      parameters: action.parameters,
+      execute: async (args: any) => await action.execute(accessToken, ...Object.values(args)),
+    }));
 
   const agent = om.createAgent({
     name: 'GumroadAgent',

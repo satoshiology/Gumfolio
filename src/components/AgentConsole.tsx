@@ -6,6 +6,7 @@ import axios from "axios";
 
 export default function AgentConsole() {
   const [agents, setAgents] = React.useState<any[]>([]);
+  const [runs, setRuns] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(false);
 
   const spawnAgent = async () => {
@@ -18,7 +19,14 @@ export default function AgentConsole() {
             Authorization: `Bearer ${localStorage.getItem("gumroad_access_token")}`
         }
       });
-      setAgents(prev => [...prev, { name: `Agent-${prev.length + 1}`, result: response.data.result }]);
+      const newRun = { 
+        name: `Agent-${agents.length + 1}`, 
+        result: response.data.result, 
+        instructions: "You are a specialized Gumroad store manager agent.", 
+        timestamp: new Date().toISOString() 
+      };
+      setAgents(prev => [...prev, newRun]);
+      setRuns(prev => [newRun, ...prev]);
     } catch (e) {
       console.error(e);
     } finally {
@@ -72,6 +80,17 @@ export default function AgentConsole() {
           </div>
         ))}
       </div>
+
+      <section className="space-y-4">
+        <h2 className="text-2xl font-bold">Run History</h2>
+        {runs.map((run, i) => (
+            <div key={i} className="bg-zinc-900 p-4 rounded-xl border border-white/5 space-y-2">
+                <p className="text-sm font-mono text-primary">{new Date(run.timestamp).toLocaleString()}</p>
+                <p className="text-on-surface-variant italic">"{run.instructions}"</p>
+                <pre className="text-white text-xs bg-black p-2 rounded overflow-auto">{JSON.stringify(run.result, null, 2)}</pre>
+            </div>
+        ))}
+      </section>
     </motion.div>
   );
 }

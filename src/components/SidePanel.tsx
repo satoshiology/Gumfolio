@@ -22,7 +22,7 @@ export function SidePanel({ isOpen, onClose, side, children }: SidePanelProps) {
         >
           <button 
             onClick={onClose} 
-            className="absolute top-6 right-6 p-2 rounded-full bg-primary/20 text-primary hover:bg-primary/30"
+            className="absolute top-6 right-6 p-2 rounded-full bg-primary/20 text-primary hover:bg-primary/30 z-[110]"
           >
             <X className="w-8 h-8" />
           </button>

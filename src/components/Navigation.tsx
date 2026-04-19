@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "motion/react";
-import { Bell, LayoutDashboard, Package, CreditCard, Key, User, Sparkles, Settings as SettingsIcon, Zap } from "lucide-react";
+import { LayoutDashboard, Package, CreditCard, Key, User, Sparkles, Settings as SettingsIcon, Zap } from "lucide-react";
 import { cn } from "@/src/lib/utils";
 import { gumroadService } from "../services/gumroadService";
 import { User as UserType } from "../types";
@@ -48,9 +48,6 @@ export function TopAppBar() {
         </Link>
       </div>
       <div className="flex items-center gap-2">
-        <button className="p-2 rounded-xl hover:bg-zinc-800/40 transition-colors text-zinc-500 hover:text-violet-400">
-          <Bell className="w-6 h-6" />
-        </button>
         <Link to="/settings" className="p-2 rounded-xl hover:bg-zinc-800/40 transition-colors text-zinc-500 hover:text-violet-400">
           <SettingsIcon className="w-6 h-6" />
         </Link>

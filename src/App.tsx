@@ -1,6 +1,6 @@
 import * as React from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
-import { AnimatePresence } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { TopAppBar, BottomNavBar } from "./components/Navigation";
 import Dashboard from "./components/Dashboard";
 import SalesFeed from "./components/SalesFeed";
@@ -15,8 +15,11 @@ import Settings from "./components/Settings";
 import { gumroadService } from "./services/gumroadService";
 import { Smartphone } from "lucide-react";
 import { ChatProvider } from "./context/ChatContext";
+import { StrategyProvider } from "./context/StrategyContext";
+import { FeedbackProvider } from "./context/FeedbackContext";
 import { SidePanel } from "./components/SidePanel";
-import { AlliesPanel } from "./components/AlliesPanel";
+import { AgentWorkbench } from "./components/AgentWorkbench";
+import { StrategyEchoChamber } from "./components/StrategyEchoChamber";
 
 function MobileOnlyMessage() {
   return (
@@ -37,7 +40,13 @@ function AnimatedRoutes() {
   
   return (
     <AnimatePresence mode="wait">
-      <div key={location.pathname} className="h-full">
+      <motion.div 
+        key={location.pathname}
+        initial={{ opacity: 0, x: 20, rotateY: 5 }}
+        animate={{ opacity: 1, x: 0, rotateY: 0 }}
+        exit={{ opacity: 0, x: -20, rotateY: -5 }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
+      >
         <Routes location={location}>
           <Route path="/" element={<Dashboard />} />
           <Route path="/sales" element={<SalesFeed />} />
@@ -48,7 +57,7 @@ function AnimatedRoutes() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<Settings />} />
         </Routes>
-      </div>
+      </motion.div>
     </AnimatePresence>
   );
 }
@@ -77,31 +86,35 @@ export default function App() {
 
   return (
     <ChatProvider>
-      <Router>
-        <div className="min-h-screen bg-surface-dim text-on-surface font-body selection:bg-primary/30 relative flex flex-col">
-          
-          {/* Grip Icons */}
-          <button onClick={() => setLeftPanel(true)} className="fixed left-0 top-1/2 -translate-y-1/2 z-40 p-2 opacity-50">
-            <img src={gripUrl} alt="Left Grip" />
-          </button>
-          <button onClick={() => setRightPanel(true)} className="fixed right-0 top-1/2 -translate-y-1/2 z-40 p-2 opacity-50">
-            <img src={gripUrl} alt="Right Grip" />
-          </button>
+      <StrategyProvider>
+        <FeedbackProvider>
+          <Router>
+            <div className="min-h-screen bg-surface-dim text-on-surface font-body selection:bg-primary/30 relative">
+            
+            {/* Grip Icons */}
+            <button onClick={() => setLeftPanel(true)} className="fixed left-0 top-1/2 -translate-y-1/2 z-40 p-2 opacity-50">
+              <img src={gripUrl} alt="Left Grip" />
+            </button>
+            <button onClick={() => setRightPanel(true)} className="fixed right-0 top-1/2 -translate-y-1/2 z-40 p-2 opacity-50">
+              <img src={gripUrl} alt="Right Grip" />
+            </button>
 
-          <SidePanel isOpen={leftPanel} onClose={() => setLeftPanel(false)} side="left">
-            <div className="p-6 text-xl">Left Panel (Placeholder)</div>
-          </SidePanel>
-          <SidePanel isOpen={rightPanel} onClose={() => setRightPanel(false)} side="right">
-            <AlliesPanel />
-          </SidePanel>
+            <SidePanel isOpen={leftPanel} onClose={() => setLeftPanel(false)} side="left">
+              <StrategyEchoChamber />
+            </SidePanel>
+            <SidePanel isOpen={rightPanel} onClose={() => setRightPanel(false)} side="right">
+              <AgentWorkbench />
+            </SidePanel>
 
           <TopAppBar />
-          <main className="flex-1 w-full max-w-7xl mx-auto px-6 overflow-hidden flex flex-col pt-24 pb-20">
+          <main className="pt-24 pb-32 px-6 max-w-7xl mx-auto">
             <AnimatedRoutes />
           </main>
           <BottomNavBar />
         </div>
       </Router>
-    </ChatProvider>
+    </FeedbackProvider>
+  </StrategyProvider>
+</ChatProvider>
   );
 }
