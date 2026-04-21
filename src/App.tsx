@@ -77,6 +77,31 @@ export default function App() {
     if (localStorage.getItem('theme') === 'pro') {
         document.body.classList.add('pro-theme');
     }
+
+    const applyTheme = () => {
+      const appearance = localStorage.getItem('appearance') || 'system';
+      const isSystemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+      if (appearance === 'light' || (appearance === 'system' && !isSystemDark)) {
+        document.body.classList.add('light-theme');
+      } else {
+        document.body.classList.remove('light-theme');
+      }
+    };
+
+    applyTheme();
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleSystemThemeChange = () => applyTheme();
+    mediaQuery.addEventListener('change', handleSystemThemeChange);
+
+    const handleAppearanceChange = () => applyTheme();
+    window.addEventListener('appearanceChange', handleAppearanceChange);
+
+    return () => {
+      mediaQuery.removeEventListener('change', handleSystemThemeChange);
+      window.removeEventListener('appearanceChange', handleAppearanceChange);
+    };
   }, []);
 
   if (!isAuthenticated) {
