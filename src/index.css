@@ -379,3 +379,13 @@
   70% { transform: scale(1); }
   100% { transform: scale(0.75); }
 }
+
+/* Global scrollbar hiding */
+::-webkit-scrollbar {
+  display: none;
+}
+
+html {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}

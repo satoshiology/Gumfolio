@@ -1,6 +1,6 @@
 {
   "name": "Gumfolio",
-  "description": "Scale your Gumroad store with Gumfolio. Our proactive, agentic AI acts as your full-time digital employee, automating sales and operations autonomously.",
+  "description": "Scale your Gumroad store with Gumfolio—manage products, subscribers, and license keys effortlessly, while your always-on AI strategist runs the playbook behind the scenes.",
   "requestFramePermissions": [
     "microphone"
   ],

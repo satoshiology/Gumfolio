@@ -54,6 +54,20 @@ export function TopAppBar() {
         </Link>
       </div>
       <div className="flex items-center gap-2">
+        <button 
+            onClick={() => {
+                const answerlyObj = (window as any).Answerly || (window as any).answerly;
+                if (answerlyObj && typeof answerlyObj.trigger === 'function') {
+                    answerlyObj.trigger('FacePop', '4b361667-6fa9-4b7d-9853-534471bd1eb1');
+                } else {
+                    console.error("Answerly SDK not loaded, available:", Object.keys(window).filter(k => k.toLowerCase().includes('answerly')));
+                    alert("The upgrade system is still initializing, please try again in a few seconds.");
+                }
+            }}
+            className="text-[10px] font-bold px-3 py-1.5 rounded-lg bg-yellow-950/20 text-yellow-500 border border-yellow-700/50 shadow-[0_0_10px_#ca9545] hover:shadow-[0_0_15px_#ca9545] transition-all"
+        >
+            PRO UPGRADE
+        </button>
         <Link to="/settings" className="p-2 rounded-xl hover:bg-white/10 transition-colors text-on-surface-variant hover:text-primary">
           <SettingsIcon className="w-6 h-6" />
         </Link>

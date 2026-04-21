@@ -38,7 +38,7 @@ export default function AIAgent() {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 1.05 }}
-      className="max-w-2xl mx-auto flex flex-col h-[calc(100dvh-14rem)]"
+      className="max-w-2xl mx-auto flex flex-col h-[calc(100dvh-20rem)]"
     >
       <header className="mb-8 text-center flex justify-between items-center px-4">
         <button onClick={() => setConsoleOpen(true)} className="text-secondary hover:text-primary transition-colors">
