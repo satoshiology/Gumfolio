@@ -30,20 +30,6 @@ export function TopAppBar() {
   return (
     <header className="fixed top-0 w-full z-50 bg-white/5 backdrop-blur-2xl border-b border-white/5 flex justify-between items-center px-6 py-4">
       <div className="flex items-center gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center border border-white/10 glass-panel">
-            <img 
-              src={isPro ? "https://www.image2url.com/r2/default/images/1776759297297-28090905-e87b-43b4-a066-a13dee62a58e.png" : "https://subpagebucket.s3.eu-north-1.amazonaws.com/library/934/7f7e89a4-95ff-4e7f-b5d8-82325118dded.png"} 
-              alt="Gumfolio Logo" 
-              className="w-full h-full object-contain"
-              referrerPolicy="no-referrer"
-            />
-          </div>
-          <h1 className="text-xl font-bold text-primary font-headline tracking-tight">
-            Gumfolio
-          </h1>
-        </div>
-        <div className="h-6 w-px bg-white/10 mx-1" />
         <Link to="/profile" className="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center overflow-hidden border border-white/10 hover:border-primary transition-colors">
           <img
             alt="User Profile"
@@ -52,8 +38,12 @@ export function TopAppBar() {
             referrerPolicy="no-referrer"
           />
         </Link>
+        <h1 className="text-xl font-bold text-primary font-headline tracking-tight">
+          Gumfolio
+        </h1>
       </div>
-      <div className="flex items-center gap-2">
+      
+      <div className="flex-1 flex justify-center">
         <button 
             onClick={() => {
                 const answerlyObj = (window as any).Answerly || (window as any).answerly;
@@ -68,6 +58,9 @@ export function TopAppBar() {
         >
             PRO UPGRADE
         </button>
+      </div>
+
+      <div className="flex items-center gap-2">
         <Link to="/settings" className="p-2 rounded-xl hover:bg-white/10 transition-colors text-on-surface-variant hover:text-primary">
           <SettingsIcon className="w-6 h-6" />
         </Link>

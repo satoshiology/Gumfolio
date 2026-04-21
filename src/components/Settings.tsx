@@ -1,6 +1,8 @@
 import React from "react";
 import { motion } from "motion/react";
-import { LogOut, Settings as SettingsIcon, ChevronRight, User, History, Sparkles } from "lucide-react";
+import { LogOut, Settings as SettingsIcon, ChevronRight, User, History, Sparkles, Terminal } from "lucide-react";
+import { useDeveloper } from "../context/DeveloperContext";
+import { NumberPad } from "./NumberPad";
 import { gumroadService } from "../services/gumroadService";
 import { useNavigate } from "react-router-dom";
 import { playSound } from "../lib/audio";
@@ -8,6 +10,8 @@ import { cn } from "../lib/utils";
 
 export default function Settings() {
   const navigate = useNavigate();
+  const { isDevMode, setDevMode, isMockData, setMockData } = useDeveloper();
+  const [showNumberPad, setShowNumberPad] = React.useState(false);
   const [isPro, setIsPro] = React.useState(document.body.classList.contains('pro-theme'));
   const [showLicenseModal, setShowLicenseModal] = React.useState(false);
   const [licenseKey, setLicenseKey] = React.useState("");
@@ -15,6 +19,13 @@ export default function Settings() {
   
   const PRO_PRODUCT_ID = "lTlApI5Eg1p01aTMXcRMqg==";
 
+  const toggleDevMode = () => {
+    if (isDevMode) {
+        setDevMode(false);
+    } else {
+        setShowNumberPad(true);
+    }
+  };
   const togglePro = () => {
     const pro = !isPro;
     setIsPro(pro);
@@ -132,30 +143,47 @@ export default function Settings() {
             `}</style>
         </div>
         
-        {showLicenseModal && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={() => setShowLicenseModal(false)}>
-                <div className="glass-card w-full max-w-sm rounded-[2rem] p-8 space-y-6" onClick={e => e.stopPropagation()}>
-                    <h3 className="text-xl font-headline font-bold text-on-surface">Enter License Key</h3>
-                    <p className="text-sm text-on-surface-variant">
-                      Need a license key? To upgrade tap here <a href="https://pro.gumfolio.xyz" target="_blank" className="text-[#a69a7c] underline underline-offset-4">here</a>.
-                    </p>
-                    <input 
-                        value={licenseKey} 
-                        onChange={e => setLicenseKey(e.target.value)}
-                        placeholder="XXXX-XXXX-XXXX-XXXX"
-                        className="w-full bg-surface-container-high rounded-xl p-4 text-on-surface border border-white/10"
-                    />
-                    <div className="flex gap-4">
-                        <button onClick={() => setShowLicenseModal(false)} className="flex-1 p-3 rounded-xl bg-red-500/20 text-red-400">Cancel</button>
-                        <button onClick={verifyLicense} disabled={isVerifying} className="flex-1 p-3 rounded-xl bg-[#a69a7c] text-black">
-                            {isVerifying ? "Verifying..." : "Unlock"}
-                        </button>
-                    </div>
-                </div>
-            </div>
+        {showNumberPad && (
+            <NumberPad onConfirm={() => { setDevMode(true); setShowNumberPad(false) }} onClose={() => setShowNumberPad(false)} />
         )}
 
         <div className="glass-card rounded-3xl overflow-hidden neuro-panel">
+          <div onClick={toggleDevMode} className="p-4 border-b border-white/5 flex items-center justify-between hover:bg-white/5 cursor-pointer transition-colors">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-400">
+                <Terminal className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-on-surface">Developer Mode</h3>
+                <p className="text-xs text-on-surface-variant">{isDevMode ? "Enabled" : "Disabled"}</p>
+              </div>
+            </div>
+            <div className={cn(
+                "w-12 h-6 rounded-full p-1 transition-all flex items-center shadow-inner", 
+                isDevMode ? "bg-orange-500/50 justify-end" : "bg-black/50 justify-start"
+            )}>
+                <div className="w-4 h-4 rounded-full bg-white"></div>
+            </div>
+          </div>
+          {isDevMode && (
+          <div onClick={() => setMockData(!isMockData)} className="p-4 border-b border-white/5 flex items-center justify-between hover:bg-white/5 cursor-pointer transition-colors">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400">
+                <Sparkles className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-on-surface">Mock Data</h3>
+                <p className="text-xs text-on-surface-variant">{isMockData ? "Enabled" : "Disabled"}</p>
+              </div>
+            </div>
+            <div className={cn(
+                "w-12 h-6 rounded-full p-1 transition-all flex items-center shadow-inner", 
+                isMockData ? "bg-blue-500/50 justify-end" : "bg-black/50 justify-start"
+            )}>
+                <div className="w-4 h-4 rounded-full bg-white"></div>
+            </div>
+          </div>
+          )}
           <div onClick={() => navigate("/profile")} className="p-4 border-b border-white/5 flex items-center justify-between hover:bg-white/5 cursor-pointer transition-colors">
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">

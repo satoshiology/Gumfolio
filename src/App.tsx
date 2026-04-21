@@ -19,6 +19,7 @@ import { gumroadService } from "./services/gumroadService";
 import { Smartphone } from "lucide-react";
 import { ChatProvider } from "./context/ChatContext";
 import { StrategyProvider } from "./context/StrategyContext";
+import { DeveloperProvider } from "./context/DeveloperContext";
 import { FeedbackProvider } from "./context/FeedbackContext";
 import { SidePanel } from "./components/SidePanel";
 import { AgentWorkbench } from "./components/AgentWorkbench";
@@ -85,37 +86,39 @@ export default function App() {
   const gripUrl = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMwMEZGNDEiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0ibHVjaWRlIGx1Y2lkZS1ncmlwLXZlcnRpY2FsLWljb24gbHVjaWRlLWdyaXAtdmVydGljYWwiPjxjaXJjbGUgY3g9IjkiIGN5PSIxMiIgcj0iMSIvPjxjaXJjbGUgY3g9IjkiIGN5PSI1IiByOSIxLz48Y2lyY2xlIGN4PSI5IiBjeT0iMTkiIHI9IjEiLz48Y2lyY2xlIGN4PSIxNSIgY3k9IjEyIiByPSIxIi8+PGNpcmNsZSBjeD0iMTUiIGN5PSI1IiByPSIxIi8+PGNpcmNsZSBjeD0iMTUiIGN5PSIxOSIgcj0iMSIvPjwvc3ZnPg==";
 
   return (
-    <ChatProvider>
-      <StrategyProvider>
-        <FeedbackProvider>
-          <Router>
-            <div className="min-h-screen w-full bg-surface-dim font-body selection:bg-primary/30 relative">
-              <div className="relative overflow-hidden min-h-screen w-full">
-                {/* Grip Icons */}
-                <button onClick={() => setLeftPanel(true)} className="fixed left-0 top-1/2 -translate-y-1/2 z-40 p-2 opacity-0">
-                  <img src={gripUrl} alt="Left Grip" />
-                </button>
-                <button onClick={() => setRightPanel(true)} className="fixed right-0 top-1/2 -translate-y-1/2 z-40 p-2 opacity-0">
-                  <img src={gripUrl} alt="Right Grip" />
-                </button>
+    <DeveloperProvider>
+      <ChatProvider>
+        <StrategyProvider>
+          <FeedbackProvider>
+            <Router>
+                <div className="min-h-screen w-full bg-surface-dim font-body selection:bg-primary/30 relative">
+                  <div className="relative overflow-hidden min-h-screen w-full">
+                    {/* Grip Icons */}
+                    <button onClick={() => setLeftPanel(true)} className="fixed left-0 top-1/2 -translate-y-1/2 z-40 p-2 opacity-0">
+                      <img src={gripUrl} alt="Left Grip" />
+                    </button>
+                    <button onClick={() => setRightPanel(true)} className="fixed right-0 top-1/2 -translate-y-1/2 z-40 p-2 opacity-0">
+                      <img src={gripUrl} alt="Right Grip" />
+                    </button>
 
-                <SidePanel isOpen={leftPanel} onClose={() => setLeftPanel(false)} side="left">
-                  <StrategyEchoChamber />
-                </SidePanel>
-                <SidePanel isOpen={rightPanel} onClose={() => setRightPanel(false)} side="right">
-                  <AgentWorkbench />
-                </SidePanel>
+                    <SidePanel isOpen={leftPanel} onClose={() => setLeftPanel(false)} side="left">
+                      <StrategyEchoChamber />
+                    </SidePanel>
+                    <SidePanel isOpen={rightPanel} onClose={() => setRightPanel(false)} side="right">
+                      <AgentWorkbench />
+                    </SidePanel>
 
-                <TopAppBar />
-                <main className="pt-24 pb-32 px-6 h-full overflow-y-auto">
-                    <AnimatedRoutes />
-                </main>
-                <BottomNavBar />
-              </div>
-            </div>
-          </Router>
-    </FeedbackProvider>
-  </StrategyProvider>
-</ChatProvider>
+                    <TopAppBar />
+                    <main className="pt-24 pb-32 px-6 h-full overflow-y-auto">
+                        <AnimatedRoutes />
+                    </main>
+                    <BottomNavBar />
+                  </div>
+                </div>
+            </Router>
+          </FeedbackProvider>
+        </StrategyProvider>
+      </ChatProvider>
+    </DeveloperProvider>
   );
 }

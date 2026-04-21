@@ -1,6 +1,7 @@
 import * as React from "react";
 import { GoogleGenAI } from "@google/genai";
 import { gumroadService } from "../services/gumroadService";
+import { useDeveloper } from "../context/DeveloperContext";
 
 interface Message {
   role: string;
@@ -20,6 +21,7 @@ interface ChatContextType {
 export const ChatContext = React.createContext<ChatContextType | undefined>(undefined);
 
 export function ChatProvider({ children }: { children: React.ReactNode }) {
+  const { isDevMode } = useDeveloper();
   const [messages, setMessages] = React.useState<Message[]>(() => {
     const saved = localStorage.getItem("chat_history");
     return saved ? JSON.parse(saved) : [{ role: "assistant", content: "Greetings, Creator. I am your Luminous Intelligence. How can I assist with your digital empire today?" }];
@@ -108,7 +110,7 @@ ${context}`,
       return;
     }
 
-    if (chatCount >= 5) {
+    if (!isDevMode && chatCount >= 5) {
         const isPro = await checkProStatus();
         if (!isPro) {
             const blockedMessage = "You have reached your limit of 5 free chats. Please upgrade to PRO to continue.";

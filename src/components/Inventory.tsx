@@ -6,6 +6,7 @@ import { cn, formatPrice } from "../lib/utils";
 import { gumroadService } from "../services/gumroadService";
 import { Product } from "../types";
 import { EmptyState } from "./EmptyState";
+import { useDeveloper } from "../context/DeveloperContext";
 
 function getPrimaryPrice(product: Product) {
   if (product.is_tiered_membership && product.variants && product.variants.length > 0) {
@@ -39,6 +40,7 @@ function getPrimaryPrice(product: Product) {
 }
 
 export default function Inventory() {
+  const { isMockData } = useDeveloper();
   const [products, setProducts] = React.useState<Product[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -55,7 +57,20 @@ export default function Inventory() {
     async function fetchProducts() {
       try {
         const res = await gumroadService.getProducts();
-        setProducts(res.products);
+        let allProducts = res.products;
+        if (isMockData) {
+            const mockProducts: Product[] = [...Array(5)].map((_, i) => ({
+                id: `mock-${i}`,
+                name: `Mock Product ${i + 1}`,
+                price: 1999 * (i + 1),
+                currency: "usd",
+                sales_count: (i + 1) * 10,
+                thumbnail_url: "https://picsum.photos/seed/product/200/200",
+                url: "#"
+             } as unknown as Product));
+             allProducts = [...allProducts, ...mockProducts];
+        }
+        setProducts(allProducts);
       } catch (err: any) {
         console.error("Products Fetch Error:", err);
         setError(err.response?.data?.error || "Failed to fetch inventory.");
@@ -64,7 +79,7 @@ export default function Inventory() {
       }
     }
     fetchProducts();
-  }, []);
+  }, [isMockData]);
 
   const handleTogglePublish = async (id: string, currentlyPublished: boolean) => {
     setActionLoading(`toggle-${id}`);

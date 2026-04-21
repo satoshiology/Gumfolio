@@ -7,8 +7,10 @@ import { ActionRegistry } from "../services/ActionRegistry";
 import { Sale } from "../types";
 import { HoldButton } from "./HoldButton";
 import { EmptyState } from "./EmptyState";
+import { useDeveloper } from "../context/DeveloperContext";
 
 export default function SalesFeed() {
+  const { isMockData } = useDeveloper();
   const [sales, setSales] = React.useState<Sale[]>([]);
   const [searchQuery, setSearchQuery] = React.useState("");
   const [loading, setLoading] = React.useState(true);
@@ -16,12 +18,23 @@ export default function SalesFeed() {
   const [successMsg, setSuccessMsg] = React.useState<string | null>(null);
   const [loadingAction, setLoadingAction] = React.useState<string | null>(null);
   const [confirmAction, setConfirmAction] = React.useState<{name: string, fn: () => Promise<any>} | null>(null);
-
   React.useEffect(() => {
     async function fetchSales() {
       try {
         const res = await gumroadService.getSales();
-        setSales(res.sales);
+        let allSales = res.sales;
+        if (isMockData) {
+          const mockSales: Sale[] = [...Array(5)].map((_, i) => ({
+             id: `mock-sale-${i}`,
+             product_name: `Mock Product ${i + 1}`,
+             email: `user${i}@example.com`,
+             price: 1999,
+             currency_symbol: "$",
+             created_at: new Date().toISOString()
+          } as unknown as Sale));
+          allSales = [...allSales, ...mockSales];
+        }
+        setSales(allSales);
       } catch (err: any) {
         console.error("Sales Fetch Error:", err);
         setError(err.response?.data?.error || "Failed to fetch sales feed.");
@@ -30,7 +43,7 @@ export default function SalesFeed() {
       }
     }
     fetchSales();
-  }, []);
+  }, [isMockData]);
 
   const handleAction = async (actionName: string, actionFn: () => Promise<any>) => {
     setConfirmAction(null);
