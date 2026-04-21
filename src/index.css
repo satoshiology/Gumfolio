@@ -32,6 +32,51 @@
 }
 
 /* ========================================================
+   LIGHT THEME: BEIGE & MEDIUM BROWN
+   ======================================================== */
+.light-theme {
+  --color-surface-dim: #f5f0e6;
+  --color-surface-container: #eae1d1;
+  --color-surface-container-low: #dfd2be;
+  --color-surface-container-high: #d4c3ab;
+  --color-surface-container-highest: #c8b498;
+
+  --color-primary: #8b5a2b; /* Medium Brown */
+  --color-primary-dim: #a06e3d;
+  --color-secondary: #cdaa7d;
+  --color-on-surface: #3e2723;
+  --color-on-surface-variant: #5d4037;
+}
+
+.light-theme body {
+  background-color: var(--color-surface-dim);
+  background-image:
+    radial-gradient(at 0% 0%, #eae1d1 0%, transparent 50%),
+    radial-gradient(at 100% 100%, #dfd2be 0%, transparent 50%);
+}
+
+.light-theme .glass-panel,
+.light-theme .neuro-panel,
+.light-theme .glass-card {
+  background: linear-gradient(145deg, #f0ebd9, #e6dcbe) !important;
+  box-shadow:
+    8px 8px 20px #d4c3ab,
+    -4px -4px 15px rgba(255, 255, 255, 0.8),
+    inset 0px 0px 0px 1px rgba(139, 90, 43, 0.15) !important;
+  border: 1px solid rgba(139, 90, 43, 0.1) !important;
+}
+
+.light-theme .neuro-panel {
+  box-shadow: 5px 5px 10px #d4c3ab, -5px -5px 10px #ffffff;
+}
+
+.light-theme .glass-panel {
+  background: rgba(255, 255, 255, 0.4) !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  box-shadow: 0 4px 20px rgba(139, 90, 43, 0.1) !important;
+}
+
+/* ========================================================
    PRO THEME: LUXURY GLASSMORPHIC & NEUMORPHIC OVERHAUL
    ======================================================== */
 .pro-theme {
