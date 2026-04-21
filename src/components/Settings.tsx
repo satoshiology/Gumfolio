@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "motion/react";
-import { LogOut, Settings as SettingsIcon, ChevronRight, User, History, Sparkles, Terminal, Monitor, Sun, Moon } from "lucide-react";
+import { LogOut, Settings as SettingsIcon, ChevronRight, User, History, Sparkles, Terminal } from "lucide-react";
 import { useDeveloper } from "../context/DeveloperContext";
 import { NumberPad } from "./NumberPad";
 import { gumroadService } from "../services/gumroadService";
@@ -16,7 +16,6 @@ export default function Settings() {
   const [showLicenseModal, setShowLicenseModal] = React.useState(false);
   const [licenseKey, setLicenseKey] = React.useState("");
   const [isVerifying, setIsVerifying] = React.useState(false);
-  const [appearance, setAppearance] = React.useState(localStorage.getItem('appearance') || 'system');
   
   const PRO_PRODUCT_ID = "lTlApI5Eg1p01aTMXcRMqg==";
 
@@ -40,12 +39,6 @@ export default function Settings() {
       playSound('button');
     }
     window.dispatchEvent(new CustomEvent('themeChange', { detail: { isPro: pro } }));
-  };
-
-  const handleAppearanceChange = (mode: 'system' | 'light' | 'dark') => {
-    setAppearance(mode);
-    localStorage.setItem('appearance', mode);
-    window.dispatchEvent(new CustomEvent('appearanceChange', { detail: { mode } }));
   };
 
   const verifyLicense = async () => {
@@ -150,51 +143,6 @@ export default function Settings() {
             `}</style>
         </div>
         
-        <div className="glass-card rounded-3xl overflow-hidden p-4 space-y-4">
-            <div>
-              <h3 className="font-bold text-on-surface mb-3 flex items-center gap-2">
-                <Monitor className="w-5 h-5 text-primary" /> Appearance
-              </h3>
-              <div className="flex bg-black/30 rounded-2xl p-1 relative border border-white/5">
-                <button
-                  onClick={() => handleAppearanceChange('system')}
-                  className={cn(
-                    "flex-1 py-2 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all z-10",
-                    appearance === 'system' ? "text-black shadow-md" : "text-on-surface-variant hover:text-on-surface"
-                  )}
-                >
-                  <Monitor className="w-4 h-4" /> System
-                </button>
-                <button
-                  onClick={() => handleAppearanceChange('light')}
-                  className={cn(
-                    "flex-1 py-2 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all z-10",
-                    appearance === 'light' ? "text-black shadow-md" : "text-on-surface-variant hover:text-on-surface"
-                  )}
-                >
-                  <Sun className="w-4 h-4" /> Light
-                </button>
-                <button
-                  onClick={() => handleAppearanceChange('dark')}
-                  className={cn(
-                    "flex-1 py-2 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all z-10",
-                    appearance === 'dark' ? "text-black shadow-md" : "text-on-surface-variant hover:text-on-surface"
-                  )}
-                >
-                  <Moon className="w-4 h-4" /> Dark
-                </button>
-
-                {/* Active Indicator Background */}
-                <div
-                  className="absolute top-1 bottom-1 w-[calc(33.333%-0.25rem)] rounded-xl transition-all duration-300 ease-out z-0 bg-gradient-to-r from-[#e1dccc] to-[#a69a7c]"
-                  style={{
-                    left: appearance === 'system' ? '0.25rem' : appearance === 'light' ? 'calc(33.333% + 0.125rem)' : 'calc(66.666% + 0.125rem)',
-                  }}
-                />
-              </div>
-            </div>
-        </div>
-
         {showNumberPad && (
             <NumberPad onConfirm={() => { setDevMode(true); setShowNumberPad(false) }} onClose={() => setShowNumberPad(false)} />
         )}

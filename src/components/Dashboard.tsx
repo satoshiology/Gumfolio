@@ -1,6 +1,6 @@
 import * as React from "react";
 import { TrendingUp, ShoppingBag, Eye, BarChart3, Rocket, BookOpen, Brush, AlertCircle, Loader2 } from "lucide-react";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { motion } from "motion/react";
 import { cn, formatPrice } from "../lib/utils";
 import { useLiveSalesData, useLiveProductsData } from "../hooks/useLiveDashboardData";
@@ -53,6 +53,14 @@ export default function Dashboard() {
     });
 
     return Object.entries(grouped).map(([name, revenue]) => ({ name, revenue }));
+  }, [sales]);
+
+  const salesByProduct = React.useMemo(() => {
+    const productSales: Record<string, number> = {};
+    sales.forEach(sale => {
+      productSales[sale.product_name] = (productSales[sale.product_name] || 0) + (sale.price / 100);
+    });
+    return Object.entries(productSales).map(([name, revenue]) => ({ name, revenue }));
   }, [sales]);
 
   const todaySalesCount = (sales || []).filter(s => new Date(s.created_at).toDateString() === new Date().toDateString()).length;
@@ -150,46 +158,66 @@ export default function Dashboard() {
       </section>
 
       {/* Revenue Chart Section */}
-      <section className="glass-panel rounded-xl p-8 space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="font-headline text-2xl font-bold text-on-surface">Revenue Velocity</h2>
-            <p className="text-on-surface-variant text-sm">Last 7 days performance</p>
-          </div>
-        </div>
-        <div className="h-64 w-full mt-4">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={salesByDay}>
-              <defs>
-                <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#00ff41" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#00ff41" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.03)" />
-              <XAxis 
-                dataKey="name" 
-                axisLine={false} 
-                tickLine={false} 
-                tick={{ fill: "#888888", fontSize: 10, fontWeight: "bold" }}
-                dy={10}
-              />
-              <Tooltip 
-                contentStyle={{ backgroundColor: "#0a0a0a", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px" }}
-                itemStyle={{ color: "#00ff41" }}
-                formatter={(value: number) => [`$${value.toFixed(2)}`, 'Revenue']}
-              />
-              <Area 
-                type="monotone" 
-                dataKey="revenue" 
-                stroke="#00ff41" 
-                strokeWidth={4}
-                fillOpacity={1} 
-                fill="url(#colorRevenue)" 
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <section className="glass-panel rounded-xl p-8 space-y-6">
+            <h2 className="font-headline text-lg font-bold text-on-surface">Revenue Velocity</h2>
+            <div className="h-64 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={salesByDay}>
+                  <defs>
+                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#00ff41" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#00ff41" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.03)" />
+                  <XAxis 
+                    dataKey="name" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fill: "#888888", fontSize: 10, fontWeight: "bold" }}
+                    dy={10}
+                  />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: "#0a0a0a", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px" }}
+                    itemStyle={{ color: "#00ff41" }}
+                    formatter={(value: number) => [`$${value.toFixed(2)}`, 'Revenue']}
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="revenue" 
+                    stroke="#00ff41" 
+                    strokeWidth={4}
+                    fillOpacity={1} 
+                    fill="url(#colorRevenue)" 
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+        </section>
+        <section className="glass-panel rounded-xl p-8 space-y-6">
+            <h2 className="font-headline text-lg font-bold text-on-surface">Sales by Product</h2>
+            <div className="h-64 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={salesByProduct}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.03)" />
+                  <XAxis 
+                    dataKey="name" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fill: "#888888", fontSize: 10, fontWeight: "bold" }}
+                    dy={10}
+                  />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: "#0a0a0a", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px" }}
+                    itemStyle={{ color: "#007bff" }}
+                    formatter={(value: number) => [`$${value.toFixed(2)}`, 'Revenue']}
+                  />
+                  <Bar dataKey="revenue" fill="#007bff" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+        </section>
       </section>
     </motion.div>
   );

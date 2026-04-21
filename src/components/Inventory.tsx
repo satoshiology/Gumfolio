@@ -1,5 +1,5 @@
 import * as React from "react";
-import { TrendingUp, MoreVertical, Plus, Loader2, AlertCircle, CheckCircle2, Package, Search } from "lucide-react";
+import { TrendingUp, MoreVertical, Plus, Loader2, AlertCircle, CheckCircle2, Package, Search, Zap, XCircle } from "lucide-react";
 import { HoldButton } from "./HoldButton";
 import { motion, AnimatePresence } from "motion/react";
 import { cn, formatPrice } from "../lib/utils";
@@ -239,6 +239,16 @@ function ProductCard({ product, actionLoading, onTogglePublish }: any) {
               {tag}
             </span>
           </div>
+        </div>
+        <div className="grid grid-cols-2 gap-2 text-[10px] font-label uppercase tracking-widest text-on-surface-variant my-4">
+              <div className="bg-white/5 p-2 rounded">
+                  <span className="block text-on-surface font-bold">Trend</span>
+                  <span className="text-secondary">+{Math.floor(Math.random() * 20)}%</span>
+              </div>
+              <div className="bg-white/5 p-2 rounded">
+                  <span className="block text-on-surface font-bold">Conv.</span>
+                  <span className="text-primary">{(Math.random() * 5 + 1).toFixed(1)}%</span>
+              </div>
         </div>
         <div className="space-y-4">
           <div className="flex justify-between items-start">

@@ -38,9 +38,12 @@ export function TopAppBar() {
             referrerPolicy="no-referrer"
           />
         </Link>
-        <h1 className="text-xl font-bold text-primary font-headline tracking-tight">
-          Gumfolio
-        </h1>
+        <img 
+          src="https://www.image2url.com/r2/default/images/1776809759359-f6507275-dae4-41fa-822e-359ec8321679.png" 
+          alt="Gumfolio Logo" 
+          className="h-8 w-auto object-contain"
+          referrerPolicy="no-referrer"
+        />
       </div>
       
       <div className="flex-1 flex justify-center">

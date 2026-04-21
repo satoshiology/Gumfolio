@@ -11,6 +11,21 @@ export default function Profile() {
   const [payouts, setPayouts] = React.useState<Payout[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = React.useState<'All' | 'Paid' | 'Pending'>('All');
+  const [dateFilter, setDateFilter] = React.useState<'All' | 'Last30Days'>('All');
+
+  const filteredPayouts = React.useMemo(() => {
+    let filtered = payouts;
+    if (statusFilter !== 'All') {
+      filtered = filtered.filter(p => (p.status === 'paid' ? 'Paid' : 'Pending') === statusFilter);
+    }
+    if (dateFilter === 'Last30Days') {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      filtered = filtered.filter(p => new Date(p.created_at) >= thirtyDaysAgo);
+    }
+    return filtered;
+  }, [payouts, statusFilter, dateFilter]);
 
   React.useEffect(() => {
     async function fetchData() {
@@ -134,43 +149,56 @@ export default function Profile() {
       </section>
 
       <section className="space-y-4">
-        <h3 className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant px-1">Recent Payouts</h3>
-        <div className="space-y-3">
-          {payouts.slice(0, 5).map((payout, i) => (
-            <div key={payout.id || i} className="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant/15 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className={cn(
-                  "w-10 h-10 rounded-lg flex items-center justify-center",
-                  payout.status === 'paid' ? "bg-green-500/10 text-green-400" : "bg-orange-500/10 text-orange-400"
-                )}>
-                  {payout.status === 'paid' ? <DollarSign className="w-5 h-5" /> : <Clock className="w-5 h-5" />}
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-sm font-label font-bold text-on-surface">
-                    {payout.status === 'paid' ? 'Paid Out' : 'Pending'}
-                  </span>
-                  <span className="text-xs text-on-surface-variant">
-                    {new Date(payout.created_at).toLocaleDateString()}
-                  </span>
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-lg font-headline font-bold text-on-surface">
-                  ${(parseInt(payout.amount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </div>
-                <div className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant">
-                  {payout.payment_processor}
-                </div>
-              </div>
-            </div>
-          ))}
-          {(payouts || []).length === 0 && (
-            <div className="text-center py-8 text-on-surface-variant italic">
-              No payouts found.
-            </div>
-          )}
+    <div className="flex items-center justify-between px-1">
+        <h3 className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Recent Payouts</h3>
+        <div className="flex gap-2">
+            <select className="bg-surface-container/40 p-1 text-xs rounded border border-white/5" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as any)}>
+                <option>All</option>
+                <option>Paid</option>
+                <option>Pending</option>
+            </select>
+            <select className="bg-surface-container/40 p-1 text-xs rounded border border-white/5" value={dateFilter} onChange={(e) => setDateFilter(e.target.value as any)}>
+                <option value="All">Any Date</option>
+                <option value="Last30Days">Last 30 Days</option>
+            </select>
         </div>
-      </section>
+    </div>
+    <div className="space-y-3">
+      {filteredPayouts.slice(0, 5).map((payout, i) => (
+        <div key={payout.id || i} className="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant/15 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className={cn(
+              "w-10 h-10 rounded-lg flex items-center justify-center",
+              payout.status === 'paid' ? "bg-green-500/10 text-green-400" : "bg-orange-500/10 text-orange-400"
+            )}>
+              {payout.status === 'paid' ? <DollarSign className="w-5 h-5" /> : <Clock className="w-5 h-5" />}
+            </div>
+            <div className="flex flex-col">
+              <span className="text-sm font-label font-bold text-on-surface">
+                {payout.status === 'paid' ? 'Paid Out' : 'Pending'}
+              </span>
+              <span className="text-xs text-on-surface-variant">
+                {new Date(payout.created_at).toLocaleDateString()}
+              </span>
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-lg font-headline font-bold text-on-surface">
+              ${(parseInt(payout.amount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+            <div className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant">
+              {payout.payment_processor}
+            </div>
+          </div>
+        </div>
+      ))}
+      {filteredPayouts.length === 0 && (
+        <div className="text-center py-8 text-on-surface-variant italic">
+          No payouts found.
+        </div>
+      )}
+    </div>
+  </section>
 
       <section className="pt-4">
         <a href="https://gumroad.com/settings" target="_blank" rel="noopener noreferrer" className="w-full bg-primary p-[1px] rounded-xl overflow-hidden group block" style={{ boxShadow: '0 0 20px color-mix(in srgb, var(--color-primary) 20%, transparent)' }}>
